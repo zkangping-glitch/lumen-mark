@@ -104,6 +104,26 @@ pwsh -File .\build.ps1
 - Markdown 扩展：支持 CommonMark + GFM 表格 / 任务清单；暂不支持数学公式、Mermaid、脚注。
 - 大文件（> 几 MB）实时预览会变慢，建议切换到「源码」模式。
 
+## 开发与审阅说明
+
+给接手审阅 / 二次开发的人（包括 AI 审阅者）：
+
+| 入口 | 位置 |
+| --- | --- |
+| 宿主逻辑（窗口、WebView2、文件读写、JSON 消息桥、设置、DWM 深色标题栏） | `src/host/Program.cs` |
+| 前端（渲染、编辑、目录、主题、分栏拖拽、视图互换） | `src/app/js/app.js`、`css/app.css`、`index.html` |
+| 构建（csc 编译 + 组装 + zip） | `build.ps1` |
+| 图标生成（支持任意方形 PNG → 多尺寸 ico） | `tools/make-icon.py --source <png>` |
+
+调试手段：
+
+- `--evalfile=<js>` / `--eval=<js>`：页面就绪后执行脚本，可用 `window.__lm`（`state`、`setMode`、`setSwapped`、`applySplit`、`save`、`debug` 等）做自动化验证；
+- `LUMENMARK_DEBUG=1` 时会把调试日志写到数据目录的 `debug.log`；
+- `tools/capture.py` 用 `PrintWindow` 截取窗口，便于回归对比。
+
+设计上的已知取舍：不引入前端构建工具（CodeMirror 5 直接用 `<script>` 引入），换取零依赖构建；
+消息桥用自写的极简 JSON 解析，避免为宿主额外引入 DLL；左侧栏默认常驻，窗口较窄时自动收窄。
+
 ## 第三方组件与许可
 
 - [markdown-it](https://github.com/markdown-it/markdown-it) — MIT
