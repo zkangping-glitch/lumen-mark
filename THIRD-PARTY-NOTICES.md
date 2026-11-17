@@ -28,3 +28,9 @@ components only; the application code (host + front-end glue) is original work.
   SDK distribution terms: https://learn.microsoft.com/microsoft-edge/webview2/
 - The WebView2 *runtime* itself is a component of Microsoft Edge installed on the machine
   and is not redistributed here.
+
+## Inno Setup (installer only)
+- Installer engine: Jordan Russell and Martijn Laan; Inno Setup License.
+- Simplified Chinese messages: Zhenghan Yang (Kira), from the Inno Setup source repository.
+- Source: https://github.com/jrsoftware/issrc/tree/main/Files/Languages
+- License text: `installer/LICENSE-Inno-Setup.txt` (also included in the installed application).

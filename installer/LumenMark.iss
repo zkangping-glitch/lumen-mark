@@ -14,6 +14,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+MinVersion=10.0
 OutputDir=..\output
 OutputBaseFilename=LumenMark-Setup-{#AppVersion}-x64
 SetupIconFile=..\src\host\app.ico
@@ -27,7 +28,7 @@ RestartApplications=no
 VersionInfoVersion={#AppVersion}
 
 [Languages]
-Name: "chinesesimp"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+Name: "chinesesimp"; MessagesFile: "ChineseSimplified.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
@@ -45,6 +46,7 @@ english.LaunchApp=Launch Lumen Mark
 
 [Files]
 Source: "..\dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "LICENSE-Inno-Setup.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Lumen Mark"; Filename: "{app}\LumenMark.exe"

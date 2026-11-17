@@ -75,7 +75,7 @@ lumen-mark/
 设置与最近文件保留在 `%APPDATA%\LumenMark`，便于重新安装后继续使用。
 安装需要 WebView2 Runtime；缺失时应用会提示安装。
 
-本地制作安装包需安装 **Inno Setup 6**，然后执行：
+本地制作安装包需安装 **Inno Setup 6.5 或更新的 6.x 版本**，然后执行：
 
 ```powershell
 powershell -File .\build-installer.ps1
