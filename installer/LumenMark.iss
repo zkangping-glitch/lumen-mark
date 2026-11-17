@@ -50,7 +50,7 @@ Source: "LICENSE-Inno-Setup.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Lumen Mark"; Filename: "{app}\LumenMark.exe"
-Name: "{group}\{cm:DefaultApps}"; Filename: "ms-settings:defaultapps?registeredAppUser=LumenMark"
+Name: "{group}\{cm:DefaultApps}"; Filename: "{win}\explorer.exe"; Parameters: "ms-settings:defaultapps?registeredAppUser=LumenMark"; IconFilename: "{app}\LumenMark.exe"
 Name: "{autodesktop}\Lumen Mark"; Filename: "{app}\LumenMark.exe"; Tasks: desktopicon
 
 [Registry]

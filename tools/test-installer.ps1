@@ -26,6 +26,10 @@ try {
         }
         if ((Get-Item 'HKCU:\Software\RegisteredApplications').GetValue('LumenMark') -ne 'Software\LumenMark\Capabilities') { throw 'Missing registered application' }
         if ((Get-Item "$classes\.md").GetValue('') -ne $defaultBefore) { throw 'Installer changed the existing default' }
+        $group = Join-Path ([Environment]::GetFolderPath('Programs')) 'Lumen Mark'
+        $shell = New-Object -ComObject WScript.Shell
+        $settingsShortcut = @(Get-ChildItem $group -Filter '*.lnk' | ForEach-Object { $shell.CreateShortcut($_.FullName) } | Where-Object { $_.Arguments -eq 'ms-settings:defaultapps?registeredAppUser=LumenMark' })
+        if ($settingsShortcut.Count -ne 1 -or $settingsShortcut[0].TargetPath -notlike '*\explorer.exe') { throw 'Default apps shortcut is invalid' }
     }
     $uninstall = Start-Process (Join-Path $target 'unins000.exe') -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -PassThru -Wait
     if ($uninstall.ExitCode -ne 0) { throw "Uninstall failed: $($uninstall.ExitCode)" }
