@@ -1,0 +1,14 @@
+# build output
+/dist/
+/LumenMark-win-x64.zip
+
+# runtime data (portable mode writes here when %APPDATA% is unavailable)
+data/
+/dist/data/
+
+# logs / caches
+*.log
+__pycache__/
+
+# scratch
+_tmp/
