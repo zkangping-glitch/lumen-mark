@@ -50,6 +50,7 @@ $cscArgs = @(  '/nologo',
 )
 $ico = Join-Path $src 'host\app.ico'
 if (Test-Path $ico) { $cscArgs += "/win32icon:$ico" }
+if (Test-Path $ico) { Copy-Item $ico (Join-Path $dist 'app.ico') -Force }
 $cscArgs += (Join-Path $src 'host\Program.cs')
 
 & $csc $cscArgs

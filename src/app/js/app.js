@@ -67,7 +67,7 @@
   function initMarkdown() {
     var factory = window.markdownit || window.markdownIt;
     md = factory({
-      html: true,
+      html: false,
       linkify: true,
       typographer: false,
       breaks: false,
@@ -234,7 +234,7 @@
     if (persist !== false) { try { localStorage.setItem('lm.mode', mode); } catch (e) { /* ignore */ } }
     if (cm) {
       if (mode !== 'reader') { setTimeout(function () { cm.refresh(); }, 0); }
-      if (mode === 'reader') { renderPreview(true); }
+      if (mode !== 'source') { renderPreview(true); }
     }
   }
 
@@ -329,10 +329,12 @@
 
   function scheduleRender() {
     if (state.renderTimer) clearTimeout(state.renderTimer);
+    if (state.mode === 'source') { updateStats(); return; }
     state.renderTimer = setTimeout(function () { renderPreview(false); }, 110);
   }
 
   function renderPreview(force) {
+    if (state.mode === 'source') return;
     var text = cm ? cm.getValue() : '';
     var html = md.render(text, { dir: state.dir });
     els.preview.innerHTML = html;
@@ -434,7 +436,7 @@
     if (dirty === state.dirty) return;
     state.dirty = dirty;
     els.dirtyDot.classList.toggle('on', dirty);
-    post({ cmd: 'setDirty', dirty: dirty, title: state.name });
+    post({ cmd: 'setDirty', dirty: dirty, title: state.name, path: state.path });
   }
 
   // --------------------------------------------------------------- documents
@@ -481,13 +483,12 @@
     state.path = data.path || state.path;
     state.name = data.name || state.name;
     state.dir = data.dir || state.dir;
-    state.savedText = cm ? cm.getValue() : '';
-    state.dirty = false;
-    els.dirtyDot.classList.remove('on');
+    state.savedText = data.content;
     els.docName.textContent = state.name;
     els.docName.classList.add('has-file');
     updateStats();
-    post({ cmd: 'setDirty', dirty: false, title: state.name });
+    updateDirty();
+    post({ cmd: 'setDirty', dirty: state.dirty, title: state.name, path: state.path });
     toast('已保存 ' + state.name);
   }
 

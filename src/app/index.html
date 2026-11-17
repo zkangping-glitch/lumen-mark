@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' https: http: data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Lumen Mark</title>
 <link rel="stylesheet" href="vendor/codemirror/codemirror.css">
 <link rel="stylesheet" href="css/app.css?v=__BUILD__">
@@ -72,7 +73,7 @@
     <div id="welcome">
       <div class="welcome-card">
         <div class="welcome-logo">
-          <svg viewBox="0 0 24 24"><path d="M6 3.5h9.5L19 7v13.5H6z"/><path d="M9 11h6M9 14.5h6M9 8h2.5"/></svg>
+          <img src="icon.png" alt="Lumen Mark" width="64" height="64" style="display:block;border-radius:14px">
         </div>
         <h1>Lumen Mark</h1>
         <div class="tagline">轻量 · 本地 · Markdown 阅读与编辑</div>

@@ -417,12 +417,12 @@ body.dragging .CodeMirror { pointer-events: none; }
 #welcome.hidden { display: none; }
 .welcome-card { width: 100%; max-width: 520px; text-align: center; }
 .welcome-logo {
-  width: 54px; height: 54px;
+  width: 64px; height: 64px;
   margin: 0 auto 18px;
   border-radius: 14px;
-  background: linear-gradient(150deg, var(--accent), #9b6bff);
+  background: transparent;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 10px 26px rgba(47, 111, 237, 0.28);
+  box-shadow: none;
 }
 .welcome-logo svg { width: 28px; height: 28px; stroke: #fff; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .welcome-card h1 { font-size: 21px; font-weight: 650; margin: 0 0 6px; letter-spacing: 0.01em; }

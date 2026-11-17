@@ -45,6 +45,7 @@ namespace LumenMark
         private string mdDir;
         private bool isDirty;
         private bool allowClose;
+        private bool changingDocument;
         private bool hasSavedBounds;
         private string pendingOpenPath;
         private string startMode;
@@ -69,6 +70,8 @@ namespace LumenMark
             AllowDrop = true;
 
             webView = new WebView2();
+            string iconPath = Path.Combine(baseDir, "app.ico");
+            if (File.Exists(iconPath)) Icon = new Icon(iconPath);
             webView.Dock = DockStyle.Fill;
             webView.DefaultBackgroundColor = Color.FromArgb(22, 24, 29);
             Controls.Add(webView);
@@ -266,6 +269,7 @@ namespace LumenMark
 
         private void OnWebMessage(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
+            if (!string.Equals(e.Source, "https://" + VirtualHost + "/index.html", StringComparison.OrdinalIgnoreCase)) return;
             string json;
             try { json = e.WebMessageAsJson; }
             catch { return; }
@@ -310,6 +314,7 @@ namespace LumenMark
                         SendRecents();
                         break;
                     case "setDirty":
+                        if (!string.Equals(Get(msg, "path"), currentPath, StringComparison.OrdinalIgnoreCase)) break;
                         isDirty = string.Equals(Get(msg, "dirty"), "true", StringComparison.OrdinalIgnoreCase);
                         UpdateWindowTitle(Get(msg, "title"));
                         break;
@@ -327,7 +332,6 @@ namespace LumenMark
                         OpenExternal(Get(msg, "url"));
                         break;
                     case "exit":
-                        allowClose = true;
                         Close();
                         break;
                 }
@@ -395,9 +399,9 @@ namespace LumenMark
 
         // ----------------------------------------------------------- documents
 
-        private void SendFile(string path)
+        private void SendFile(string path, string content = null)
         {
-            string content = ReadTextSmart(path);
+            if (content == null) content = ReadTextSmart(path);
             FileInfo fi = new FileInfo(path);
             string dir = Path.GetDirectoryName(path) ?? string.Empty;
             SendJson("{\"event\":\"file\",\"path\":\"" + JsonEscape(path)
@@ -407,29 +411,54 @@ namespace LumenMark
                 + ",\"content\":\"" + JsonEscape(content) + "\"}");
         }
 
-        private void OpenPath(string path)
+        private async void OpenPath(string path)
         {
-            if (string.IsNullOrEmpty(path)) return;
-            path = Path.GetFullPath(path);
-            if (!File.Exists(path))
+            if (changingDocument) return;
+            changingDocument = true;
+            webView.Enabled = false;
+            try
             {
-                SendError("文件不存在：" + path);
-                return;
-            }
-            if (new FileInfo(path).Length > 32L * 1024 * 1024)
-            {
-                SendError("文件太大（超过 32 MB），暂不支持打开。");
-                return;
-            }
+                if (string.IsNullOrEmpty(path)) return;
+                path = Path.GetFullPath(path);
+                if (!File.Exists(path))
+                {
+                    SendError("文件不存在：" + path);
+                    return;
+                }
+                if (new FileInfo(path).Length > 32L * 1024 * 1024)
+                {
+                    SendError("文件太大（超过 32 MB），暂不支持打开。");
+                    return;
+                }
 
-            currentPath = path;
-            mdDir = Path.GetDirectoryName(path);
-            isDirty = false;
-            AddRecent(path);
-            SaveSettings();
-            SendFile(path);
-            SendRecents();
-            UpdateWindowTitle(Path.GetFileName(path));
+                // Read before changing document identity so a failed read keeps the old document intact.
+                if (!await ConfirmDocumentChange()) return;
+                string content = ReadTextSmart(path);
+                currentPath = path;
+                mdDir = Path.GetDirectoryName(path);
+                isDirty = false;
+                AddRecent(path);
+                SaveSettings();
+                SendFile(path, content);
+                SendRecents();
+                UpdateWindowTitle(Path.GetFileName(path));
+            }
+            catch (Exception ex) { SendError(ex.Message); }
+            finally { changingDocument = false; webView.Enabled = true; }
+        }
+
+        private async Task<bool> ConfirmDocumentChange()
+        {
+            if (!isDirty) return true;
+            DialogResult result = MessageBox.Show(this,
+                "当前文档有未保存的修改。是否先保存？\r\n选择“否”将放弃修改。",
+                AppName, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+            if (result == DialogResult.Cancel) return false;
+            if (result == DialogResult.No) return true;
+            string json = await webView.CoreWebView2.ExecuteScriptAsync("window.__lm.editor.getValue()");
+            int offset = 0;
+            if (string.IsNullOrEmpty(json) || json[0] != '"') return false;
+            return SaveContent(ReadJsonString(json, ref offset), false);
         }
 
         private void OpenRelative(string href)
@@ -463,7 +492,7 @@ namespace LumenMark
             }
         }
 
-        private void SaveContent(string content, bool saveAs)
+        private bool SaveContent(string content, bool saveAs)
         {
             string target = currentPath;
             if (saveAs || string.IsNullOrEmpty(target))
@@ -484,7 +513,7 @@ namespace LumenMark
                         dlg.InitialDirectory = mdDir;
                         dlg.FileName = "未命名.md";
                     }
-                    if (dlg.ShowDialog(this) != DialogResult.OK) return;
+                    if (dlg.ShowDialog(this) != DialogResult.OK) return false;
                     target = dlg.FileName;
                 }
             }
@@ -501,13 +530,16 @@ namespace LumenMark
                 SendJson("{\"event\":\"saved\",\"path\":\"" + JsonEscape(target)
                     + "\",\"name\":\"" + JsonEscape(Path.GetFileName(target))
                     + "\",\"dir\":\"" + JsonEscape(mdDir ?? string.Empty)
+                    + "\",\"content\":\"" + JsonEscape(content)
                     + "\",\"renamed\":" + (renamed ? "true" : "false") + "}");
                 SendRecents();
                 UpdateWindowTitle(Path.GetFileName(target));
+                return true;
             }
             catch (Exception ex)
             {
                 SendError("保存失败：" + ex.Message);
+                return false;
             }
         }
 
@@ -584,7 +616,7 @@ namespace LumenMark
             try
             {
                 string full = Path.GetFullPath(Path.Combine(mdDir, rel.Replace('/', '\\')));
-                string root = Path.GetFullPath(mdDir);
+                string root = Path.GetFullPath(mdDir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
                 if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase)) return null;
                 return full;
             }
@@ -653,15 +685,21 @@ namespace LumenMark
             return ext == ".md" || ext == ".markdown" || ext == ".mdown" || ext == ".mkd" || ext == ".txt";
         }
 
-        private void OnFormClosing(object sender, FormClosingEventArgs e)
+        private async void OnFormClosing(object sender, FormClosingEventArgs e)
         {
-            if (!allowClose && isDirty)
+            if (allowClose) { SaveSettings(); return; }
+            e.Cancel = true;
+            if (changingDocument) return;
+            changingDocument = true;
+            webView.Enabled = false;
+            try
             {
-                DialogResult r = MessageBox.Show(
-                    "当前文档有未保存的修改，确定要关闭吗？",
-                    AppName, MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
-                if (r != DialogResult.OK) { e.Cancel = true; return; }
+                if (!await ConfirmDocumentChange()) return;
+                allowClose = true;
+                BeginInvoke(new Action(Close));
             }
+            catch (Exception ex) { SendError(ex.Message); }
+            finally { changingDocument = false; webView.Enabled = true; }
             SaveSettings();
         }
 

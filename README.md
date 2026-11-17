@@ -1,6 +1,6 @@
 # Lumen Mark
 
-轻量、本地优先的 Windows Markdown 阅读 / 编辑器。双击就能用，约 **1.7 MB**，没有安装包、没有账号、不联网。
+轻量、本地优先的 Windows Markdown 阅读 / 编辑器。解压后双击就能用，没有安装包、没有账号，核心功能离线可用。
 
 - 宿主：C# WinForms（用 Windows 自带 .NET Framework 4.8 编译，单文件 exe）
 - 界面：WebView2（Windows 10/11 自带 Edge WebView2 Runtime）
@@ -67,6 +67,12 @@ pwsh -File .\build.ps1
 
 产物：`dist\LumenMark.exe`、`LumenMark-win-x64.zip`。
 
+也可在仓库 **Actions → Windows portable build** 中打开最新成功的运行，下载
+`LumenMark-win-x64` artifact，解压后运行 `LumenMark.exe`。
+
+图标源图位于 `art/icon.png`。安装 Pillow 后运行 `python tools/make-icon.py`，
+可重新生成包含 16–256 像素尺寸的 `src/host/app.ico`；构建时会同时嵌入 EXE 并复制到便携目录。
+
 ## 运行
 
 ```powershell
@@ -92,8 +98,8 @@ pwsh -File .\build.ps1
 
 ## 数据与隐私
 
-- 不联网、不上传、无遥测；打开的文件只在本机读写。
-- 唯一的网络行为是用户主动点击外链时交给默认浏览器。
+- 无遥测；应用不会主动上传打开的文档，文件在本机读写。
+- 文档中的远程图片会联网加载；用户点击外链时交给默认浏览器。
 - `app/` 里的资源通过 WebView2 虚拟主机映射加载，不经过本地 HTTP 服务。
 
 ## 已知限制
@@ -102,6 +108,7 @@ pwsh -File .\build.ps1
 - 单文档窗口：暂不支持多标签页 / 文件夹工作区。
 - 拖入文件依赖宿主窗口的 OLE 拖放；若在某些输入法/文件管理器下失效，可改用 `Ctrl+O`。
 - Markdown 扩展：支持 CommonMark + GFM 表格 / 任务清单；暂不支持数学公式、Mermaid、脚注。
+- 为防止文档脚本访问本地文件，原始 HTML 按文本展示；不支持内嵌 HTML 图片、样式或 iframe。
 - 大文件（> 几 MB）实时预览会变慢，建议切换到「源码」模式。
 
 ## 开发与审阅说明
@@ -123,6 +130,10 @@ pwsh -File .\build.ps1
 
 设计上的已知取舍：不引入前端构建工具（CodeMirror 5 直接用 `<script>` 引入），换取零依赖构建；
 消息桥用自写的极简 JSON 解析，避免为宿主额外引入 DLL；左侧栏默认常驻，窗口较窄时自动收窄。
+
+前端回归：安装 Node.js 与 Playwright 后，执行 `node tools/test-renderer.cjs`。
+可用 `CHROMIUM_PATH` 指定 Chromium 可执行文件。测试覆盖 HTML 注入隔离、
+Markdown 渲染、保存期间继续输入的脏状态，以及源码模式延迟预览。
 
 ## 第三方组件与许可
 
