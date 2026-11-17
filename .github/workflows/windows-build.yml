@@ -1,4 +1,4 @@
-name: Windows portable build
+name: Windows build
 
 on:
   push:
@@ -19,6 +19,17 @@ jobs:
       - name: Test native path boundaries
         shell: powershell
         run: ./tools/test-host.ps1
+      - name: Build Windows installer
+        shell: pwsh
+        run: ./build-installer.ps1 -SkipBuild
+      - name: Test install, upgrade, associations and uninstall
+        shell: powershell
+        run: ./tools/test-installer.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LumenMark-Setup-x64
+          path: output/LumenMark-Setup-*-x64.exe
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: LumenMark-win-x64

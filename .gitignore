@@ -1,6 +1,7 @@
 # build output
 /dist/
 /LumenMark-win-x64.zip
+/output/
 
 # runtime data (portable mode writes here when %APPDATA% is unavailable)
 data/

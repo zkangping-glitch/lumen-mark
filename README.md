@@ -59,6 +59,30 @@ lumen-mark/
 
 ## 构建
 
+### 安装版与默认打开程序
+
+在仓库 **Actions → Windows build** 中打开最新成功的运行，下载
+`LumenMark-Setup-x64`，解压后运行其中的 `LumenMark-Setup-0.1.1-x64.exe`。
+安装范围为当前用户，无需管理员权限，默认位置是 `%LOCALAPPDATA%\Programs\LumenMark`。
+
+安装结束时保留“设置 Markdown 默认打开程序”选项，会打开 Windows 默认应用设置。
+选择 Lumen Mark，将 `.md` 等扩展名设为默认；也可以右键任意 `.md` 文件 →
+“打开方式”→“选择其他应用”→ Lumen Mark，并选“始终使用此应用”。
+以后可通过开始菜单中的“设置 Markdown 默认打开程序”入口再次调整。
+
+安装程序注册 `.md`、`.markdown`、`.mdown`、`.mkd` 的打开方式和文件图标，
+默认程序由用户在 Windows 中确认。卸载会清理应用自身的关联注册，保留其他应用的注册和用户文档。
+设置与最近文件保留在 `%APPDATA%\LumenMark`，便于重新安装后继续使用。
+安装需要 WebView2 Runtime；缺失时应用会提示安装。
+
+本地制作安装包需安装 **Inno Setup 6**，然后执行：
+
+```powershell
+powershell -File .\build-installer.ps1
+```
+
+产物位于 `output\LumenMark-Setup-0.1.1-x64.exe`。便携版仍可用下面的构建方式生成。
+
 需要 Windows 自带的 **.NET Framework 4.x**（`csc.exe` 即可，无需安装 Visual Studio 或 .NET SDK）。
 
 ```powershell
@@ -67,7 +91,7 @@ pwsh -File .\build.ps1
 
 产物：`dist\LumenMark.exe`、`LumenMark-win-x64.zip`。
 
-也可在仓库 **Actions → Windows portable build** 中打开最新成功的运行，下载
+也可在仓库 **Actions → Windows build** 中打开最新成功的运行，下载
 `LumenMark-win-x64` artifact，解压后运行 `LumenMark.exe`。
 
 图标源图位于 `art/icon.png`。安装 Pillow 后运行 `python tools/make-icon.py`，
