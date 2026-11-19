@@ -28,10 +28,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: LumenMark-Setup-x64
+          retention-days: 7
           path: output/LumenMark-Setup-*-x64.exe
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: LumenMark-win-x64
+          retention-days: 7
           path: dist/
           if-no-files-found: error
